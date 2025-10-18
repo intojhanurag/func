@@ -26,7 +26,7 @@ type ErrEnvNotExist struct {
 	Name string
 }
 
-fun (e ErrEnvNotExist) Error() string {
+func (e ErrEnvNotExist) Error() string {
 	return fmt.Sprintf("environment variable '%s' does not exist",e.Name)
 }
 
@@ -681,6 +681,9 @@ func applyEnvs(current []fn.Env, args []string) (final []fn.Env, err error) {
 		return
 	}
 	final, _, err = mergeEnvs(current, inserts, removals)
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 

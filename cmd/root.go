@@ -298,12 +298,18 @@ func mergeEnvs(envs []fn.Env, envToUpdate *util.OrderedMap, envToRemove []string
 	}
 
 	for _, name := range envToRemove {
+		found := false
 		for i, envVar := range envs {
 			if *envVar.Name == name {
 				envs = append(envs[:i], envs[i+1:]...)
 				counter++
+				found=true
 				break
 			}
+		}
+		
+		if !found {
+			return nil, counter, ErrEnvNotExist{Name: name}
 		}
 	}
 

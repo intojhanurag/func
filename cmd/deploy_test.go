@@ -448,7 +448,17 @@ func TestDeploy_Envs(t *testing.T) {
 		t.Fatalf("Expected no envs to remain, got '%v'", f.Run.Envs)
 	}
 
-	// TODO: create and test typed errors for ErrEnvNotExist etc.
+	// Attempt to remove a non-existent environment variable.
+	// Expect a typed error ErrEnvNotExist.
+	cmd = NewDeployCmd(NewTestClient())
+	cmd.SetArgs([]string{"--env=DOES_NOT_EXIST-"})
+	err = cmd.Execute()
+
+	var notExistErr ErrEnvNotExist
+	if !errors.As(err, &notExistErr) {
+		t.Fatalf("Expected ErrEnvNotExist error, got %v", err)
+	}
+
 }
 
 // TestDeploy_FunctionContext ensures that the function contextually relevant
