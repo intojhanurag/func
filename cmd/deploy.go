@@ -22,6 +22,14 @@ import (
 	"knative.dev/func/pkg/k8s"
 )
 
+type ErrEnvNotExist struct {
+	Name string
+}
+
+fun (e ErrEnvNotExist) Error() string {
+	return fmt.Sprintf("environment variable '%s' does not exist",e.Name)
+}
+
 func NewDeployCmd(newClient ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy",
