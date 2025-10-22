@@ -236,6 +236,19 @@ EXAMPLES
 	return cmd
 }
 
+type ErrInvalidRegistry struct {
+	Registry string
+	Err      error
+}
+
+func (e *ErrInvalidRegistry) Error() string {
+	return fmt.Sprintf("invalid registry [%q]: %v", e.Registry, e.Err)
+}
+
+func (e *ErrInvalidRegistry) Unwrap() error {
+    return e.Err
+}
+
 func runDeploy(cmd *cobra.Command, newClient ClientFactory) (err error) {
 	var (
 		cfg deployConfig
@@ -452,9 +465,10 @@ func build(cmd *cobra.Command, flag string, f fn.Function, client *fn.Client, bu
 
 func NewRegistryValidator(path string) survey.Validator {
 	return func(val interface{}) error {
+		s, ok := val.(string)
 
 		// if the value passed in is the zero value of the appropriate type
-		if len(val.(string)) == 0 {
+		if !ok || len(s) == 0 {
 			return fn.ErrRegistryRequired
 		}
 
@@ -464,11 +478,14 @@ func NewRegistryValidator(path string) survey.Validator {
 		}
 
 		// Set the function's registry to that provided
-		f.Registry = val.(string)
+		f.Registry = s
 
 		_, err = f.ImageName() //image can be derived without any error
 		if err != nil {
-			return fmt.Errorf("invalid registry [%q]: %w", val.(string), err)
+			return &ErrInvalidRegistry{
+				Registry: s,
+				Err:      err,
+			}
 		}
 		return nil
 	}

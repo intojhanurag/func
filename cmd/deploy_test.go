@@ -976,9 +976,10 @@ func testInvalidRegistry(cmdFn commandConstructor, t *testing.T) {
 
 	cmd.SetArgs([]string{"--registry=foo/bar/invald/myfunc"})
 
-	if err := cmd.Execute(); err == nil {
-		// TODO: typed ErrInvalidRegistry
-		t.Fatal("invalid registry did not generate expected error")
+	err = cmd.Execute()
+	var regErr *ErrInvalidRegistry
+	if !errors.As(err, &regErr){
+		t.Fatalf("expected ErrInvalidRegistry, got %v", err)
 	}
 }
 
