@@ -978,7 +978,7 @@ func testInvalidRegistry(cmdFn commandConstructor, t *testing.T) {
 
 	err = cmd.Execute()
 	var regErr *ErrInvalidRegistry
-	if !errors.As(err, &regErr){
+	if !errors.As(err, &regErr) {
 		t.Fatalf("expected ErrInvalidRegistry, got %v", err)
 	}
 }

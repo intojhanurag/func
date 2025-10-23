@@ -236,19 +236,6 @@ EXAMPLES
 	return cmd
 }
 
-type ErrInvalidRegistry struct {
-	Registry string
-	Err      error
-}
-
-func (e *ErrInvalidRegistry) Error() string {
-	return fmt.Sprintf("invalid registry [%q]: %v", e.Registry, e.Err)
-}
-
-func (e *ErrInvalidRegistry) Unwrap() error {
-    return e.Err
-}
-
 func runDeploy(cmd *cobra.Command, newClient ClientFactory) (err error) {
 	var (
 		cfg deployConfig
@@ -281,6 +268,19 @@ func runDeploy(cmd *cobra.Command, newClient ClientFactory) (err error) {
 			// For now, give a more helpful error.
 			return errors.New("please ensure the function's source is also available locally")
 		}
+	}
+
+	// Set registry from flag if provided
+	if flag := cmd.Flag("registry"); flag != nil {
+		val := flag.Value.String()
+		if val != "" {
+			f.Registry = val
+		}
+	}
+
+	// Validate the registry (flag or existing value)
+	if err := NewRegistryValidator(f.Root)(f.Registry); err != nil {
+		return err
 	}
 
 	// Now that we know function exists, proceed with prompting
@@ -463,6 +463,14 @@ func build(cmd *cobra.Command, flag string, f fn.Function, client *fn.Client, bu
 	return f, true, nil
 }
 
+type ErrInvalidRegistry struct {
+	Registry string
+}
+
+func (e *ErrInvalidRegistry) Error() string {
+	return fmt.Sprintf("invalid registry: %q", e.Registry)
+}
+
 func NewRegistryValidator(path string) survey.Validator {
 	return func(val interface{}) error {
 		s, ok := val.(string)
@@ -482,10 +490,7 @@ func NewRegistryValidator(path string) survey.Validator {
 
 		_, err = f.ImageName() //image can be derived without any error
 		if err != nil {
-			return &ErrInvalidRegistry{
-				Registry: s,
-				Err:      err,
-			}
+			return &ErrInvalidRegistry{Registry: s}
 		}
 		return nil
 	}
