@@ -79,4 +79,16 @@ func Test_NewPromptForCredentials(t *testing.T) {
 			}
 		})
 	}
+	t.Run("empty username or password returns error", func(t *testing.T) {
+		in := strings.NewReader("\r\n\r\n")
+		out := io.Discard
+		errOut := io.Discard
+
+		credPrompt := NewPromptForCredentials(in, out, errOut)
+		_, err := credPrompt("example.com")
+		if err == nil {
+			t.Fatal("expected error for empty username or password, got nil")
+		}
+	})
+
 }
