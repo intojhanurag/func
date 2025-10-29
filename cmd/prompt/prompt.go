@@ -2,6 +2,7 @@ package prompt
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -76,6 +77,10 @@ func NewPromptForCredentials(in io.Reader, out, errOut io.Writer) func(repositor
 			p = strings.Trim(p, "\r\n")
 
 			result = oci.Credentials{Username: u, Password: p}
+		}
+		
+		if strings.TrimSpace(result.Username) == "" || strings.TrimSpace(result.Password) == "" {
+			return oci.Credentials{}, errors.New("username or password cannot be empty")
 		}
 
 		return result, nil
